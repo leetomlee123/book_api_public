@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+//包名，通过protoc生成时go文件时
+package models;
+
+//手机类型m
+//枚举类型第一个字段必须为0
+message  ChapterProto {
+    string   Id = 1;
+    string  Name = 2;
+    string  HasContent = 3;
+}
+message ChaptersProto {
+    repeated ChapterProto chaptersProto = 1;
+}
