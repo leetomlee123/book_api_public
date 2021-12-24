@@ -77,7 +77,7 @@ func Register(regUser RegUser) (err error) {
 		m.SetHeader("To", regUser.EMail)
 		m.SetHeader("Subject", "小书屋通知,不要回复")
 		m.SetBody("text/html", " "+regUser.Name+",欢迎使用小书屋,这是开源项目非盈利...</br>如果觉得不错请点赞👉"+"<a href='https://github.com/leetomlee123/book'>项目地址</a><br/>")
-		d := gomail.NewDialer("smtp.163.com", 465, "18736262687@163.com", "lx11427")
+		d := gomail.NewDialer("smtp.163.com", 465, "", "")
 		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 		go func() {
 			d.DialAndSend(m)
