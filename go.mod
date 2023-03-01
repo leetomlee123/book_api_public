@@ -25,8 +25,9 @@ require (
 	github.com/jinzhu/now v1.0.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/lib/pq v1.2.0 // indirect
-	github.com/mailru/easyjson v0.0.0-20190312143242-1de009706dbe // indirect
 	github.com/mattn/go-sqlite3 v1.11.0 // indirect
+	github.com/meilisearch/meilisearch-go v0.23.0
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/prometheus/common v0.9.1
 	github.com/robfig/cron v1.2.0
@@ -36,9 +37,8 @@ require (
 	github.com/tealeg/xlsx v1.0.4-0.20180419195153-f36fa3be8893
 	github.com/unknwon/com v1.0.1
 	golang.org/x/image v0.0.0-20180628062038-cc896f830ced // indirect
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
-	golang.org/x/sys v0.0.0-20200430082407-1f5687305801 // indirect
-	golang.org/x/text v0.3.2
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
+	golang.org/x/text v0.3.7
 	google.golang.org/appengine v1.6.3 // indirect
 	google.golang.org/protobuf v1.21.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

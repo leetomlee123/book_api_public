@@ -16,7 +16,8 @@ import (
 func init() {
 	setting.Setup()
 	models.SetupMongo()
-	models.SetEs()
+	//models.SetEs()
+	models.SetUpMeiliSearch()
 	//mongo.Setup()
 	logging.Setup()
 	gredis.Setup()

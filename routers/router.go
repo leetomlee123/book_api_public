@@ -66,7 +66,7 @@ func InitRouter() *gin.Engine {
 	book.GET("/chapter/:id", v1.GetChapterById)
 	book.GET("/chapter/:id/async", v1.GetChapterByIdAsync)
 	book.GET("/chapter/:id/reload", v1.ReloadChapterById)
-	book.GET("/search", v1.Search)
+	book.GET("/search", v1.SearchMeili)
 	book.GET("/two/:name/:author", v1.GetBookByAuthorAndName)
 	book.Use(jwt.JWT())
 	{

@@ -6,18 +6,20 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"github.com/EDDYCJY/go-gin-example/pkg/logging"
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
+	"github.com/meilisearch/meilisearch-go"
+	"github.com/mitchellh/mapstructure"
+	"golang.org/x/net/html/charset"
+	"golang.org/x/text/encoding"
+	"gopkg.in/mgo.v2/bson"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 	"time"
-
-	"golang.org/x/net/html/charset"
-	"golang.org/x/text/encoding"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type ArticleEs struct {
@@ -36,6 +38,20 @@ type Book struct {
 	Status      string        `bson:"status" json:"BookStatus"`
 	Cover       string        `bson:"cover" json:"Img"`
 	LastChapter string        `bson:"last_chapter" `
+	//FirstChapterId string `bson:"first_chapter_id"`
+	//LastChapterId  string `bson:"last_chapter_id"`
+}
+type BookSearch struct {
+	Id          string `json:"Id" mapstructure:"_id"`
+	BookName    string `json:"Name" mapstructure:"book_name"`
+	Category    string `json:"CName"`
+	Rate        int
+	Author      string
+	UTime       string ` json:"UTime" mapstructure:"u_time"`
+	BookDesc    string ` json:"Desc,omitempty" mapstructure:"book_desc"`
+	Status      string ` json:"BookStatus"`
+	Cover       string ` json:"Img"`
+	LastChapter string `json:"LastChapter" mapstructure:"last_chapter"`
 	//FirstChapterId string `bson:"first_chapter_id"`
 	//LastChapterId  string `bson:"last_chapter_id"`
 }
@@ -99,7 +115,8 @@ type BookDetail struct {
 	SameAuthorBooks []Book
 }
 
-/**
+/*
+*
 根据category 分页books
 */
 type CateBook struct {
@@ -134,7 +151,7 @@ type Process struct {
 	BookProcess string
 }
 
-//book detail
+// book detail
 func StoryInfo(id string) (BookDetail, error) {
 	var bookDetail BookDetail
 	bid := bson.ObjectIdHex(id)
@@ -159,7 +176,7 @@ func StoryInfo(id string) (BookDetail, error) {
 	return bookDetail, nil
 }
 
-//qidian hot rank
+// qidian hot rank
 func StoryRank(tye int) (interface{}, error) {
 	var _row interface{}
 
@@ -175,7 +192,7 @@ func StoryRank(tye int) (interface{}, error) {
 	return _row, nil
 }
 
-//book cloud shelf need account
+// book cloud shelf need account
 func Shelf(account Account) ([]Book, error) {
 	var books []Book
 	var objids []bson.ObjectId
@@ -196,7 +213,7 @@ func Shelf(account Account) ([]Book, error) {
 
 }
 
-//use click hot rank
+// use click hot rank
 func StoryHot() ([]Hot, error) {
 	var data []Hot
 	m := []bson.M{
@@ -210,7 +227,7 @@ func StoryHot() ([]Hot, error) {
 	return data, nil
 }
 
-//hot gt 0 book
+// hot gt 0 book
 func HotGtZeroBooks() ([]Book, error) {
 	var bks []Book
 	if err := bookDB.Find(bson.M{"hot": bson.M{"$gt": 0}}).All(&bks); err != nil {
@@ -220,7 +237,7 @@ func HotGtZeroBooks() ([]Book, error) {
 	return bks, nil
 }
 
-//modify shelf
+// modify shelf
 func ModifyShelf(bookId string, action string, account Account) error {
 
 	if account.IdS != nil {
@@ -256,7 +273,7 @@ func ModifyShelf(bookId string, action string, account Account) error {
 	return nil
 }
 
-//get all book category
+// get all book category
 func Category() ([]string, error) {
 	var data []Result
 
@@ -275,7 +292,7 @@ func Category() ([]string, error) {
 	return tem, nil
 }
 
-//get pages book by category
+// get pages book by category
 func GetStoryByCategoryWithPage(page int, cate string, size int) ([]CateBook, error) {
 
 	var datas []CateBook
@@ -292,7 +309,7 @@ func GetStoryByCategoryWithPage(page int, cate string, size int) ([]CateBook, er
 	return datas, nil
 }
 
-//get book chapters by book id
+// get book chapters by book id
 func GetStoryChapters(id string, count int) ([]Chapter, error) {
 
 	var chapters []Chapter
@@ -338,7 +355,7 @@ func GetStoryChapters(id string, count int) ([]Chapter, error) {
 	//return data, nil
 }
 
-//remove chapter by id
+// remove chapter by id
 func DeleteChapterById(id string) error {
 	err2 := chapterDB.Remove(bson.M{"_id": bson.ObjectIdHex(id)})
 	if err2 != nil {
@@ -347,7 +364,7 @@ func DeleteChapterById(id string) error {
 	return nil
 }
 
-//get chapter by id
+// get chapter by id
 func GetChapterById(id string) (BookContent, error) {
 
 	var result BookContent
@@ -404,7 +421,7 @@ func DBCtoSBC(s string) string {
 	return retStr
 }
 
-//get chapter by id
+// get chapter by id
 func GetChapterByIdAsync(id string) (BookContent, error) {
 
 	var result BookContent
@@ -445,7 +462,7 @@ func GetChapterByIdAsync(id string) (BookContent, error) {
 	return result, nil
 }
 
-//reload chapter content
+// reload chapter content
 func ReloadChapterById(id string) (BookContent, error) {
 	var result BookContent
 	err := chapterDB.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&result)
@@ -510,7 +527,30 @@ type Qry struct {
 	Qry map[string]interface{}
 }
 
-//search service
+func SearchMeili(key string, page int, size int) ([]BookSearch, error) {
+
+	var bks []BookSearch
+	//var r map[string]interface{}
+	//var buf bytes.Buffer
+	searchRes, err := MeiliClient.Index("books").Search(key,
+		&meilisearch.SearchRequest{
+			Limit: int64(size),
+			Page:  int64(page),
+		})
+	if err != nil {
+		fmt.Println(err)
+	}
+	hits := searchRes.Hits
+	err1 := mapstructure.Decode(hits, &bks)
+	if err1 != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(hits)
+
+	return bks, nil
+}
+
+// search service
 func Search(key string, page int, size int) ([]Book, error) {
 
 	var bks []Book
@@ -589,7 +629,7 @@ func Search(key string, page int, size int) ([]Book, error) {
 	return bks, nil
 }
 
-//site notice
+// site notice
 func Notice() (error, []Info) {
 	var info []Info
 	if err := infoDB.Find(bson.M{}).All(&info); err != nil {
@@ -598,7 +638,7 @@ func Notice() (error, []Info) {
 	return nil, info
 }
 
-//get account info by token
+// get account info by token
 func GetAccountByName(username string) (Account, error) {
 
 	var account Account
@@ -608,7 +648,7 @@ func GetAccountByName(username string) (Account, error) {
 	return account, nil
 }
 
-//阅读进度
+// 阅读进度
 func PersonBookReadProcess(account string, bookId string, process string) error {
 	var processes []Process
 	var query []bson.M
@@ -637,7 +677,7 @@ func PersonBookReadProcess(account string, bookId string, process string) error 
 	return nil
 }
 
-//get read process
+// get read process
 func GetReadProcess(account string, bookId string) string {
 	var processes []Process
 	var query []bson.M
@@ -656,7 +696,7 @@ func GetReadProcess(account string, bookId string) string {
 	}
 }
 
-//get chapter content by web link
+// get chapter content by web link
 func GetContent(u string, asnyc bool) string {
 	// Request the HTML page.
 	//u = "http://localhost:8085/book/chapter?url=" + u
@@ -688,7 +728,7 @@ func GetContent(u string, asnyc bool) string {
 
 }
 
-//get web encode
+// get web encode
 func determineEncoding(r io.Reader) encoding.Encoding {
 	bytes, _ := bufio.NewReader(r).Peek(1024)
 

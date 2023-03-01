@@ -242,6 +242,19 @@ func Search(c *gin.Context) {
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, data)
 }
+func SearchMeili(c *gin.Context) {
+	key := c.Query("key")
+	page, _ := strconv.Atoi(c.Query("page"))
+	size, _ := strconv.Atoi(c.Query("size"))
+
+	appG := app.Gin{C: c}
+	data, err := models.SearchMeili(key, page, size)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, data)
+}
 func Register(c *gin.Context) {
 	var regUser models.RegUser
 	appG := app.Gin{C: c}

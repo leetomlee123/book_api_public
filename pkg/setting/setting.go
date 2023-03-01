@@ -81,6 +81,12 @@ type Es struct {
 	Password string
 }
 
+type Meili struct {
+	Url       string
+	MasterKey string
+}
+
+var MeiliSetting = &Meili{}
 var EsSetting = &Es{}
 var cfg *ini.File
 
@@ -98,6 +104,7 @@ func Setup() {
 	mapTo("redis", RedisSetting)
 	mapTo("mongo", MongoSetting)
 	mapTo("es", EsSetting)
+	mapTo("meili", MeiliSetting)
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second

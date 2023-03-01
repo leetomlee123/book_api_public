@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/meilisearch/meilisearch-go"
 	"github.com/prometheus/common/log"
 	"gopkg.in/mgo.v2"
 )
@@ -17,6 +18,8 @@ var infoDB *mgo.Collection
 var processDB *mgo.Collection
 var EsDB *elasticsearch.Client
 
+var MeiliClient *meilisearch.Client
+
 func SetEs() {
 	cfg := elasticsearch.Config{
 		Addresses: setting.EsSetting.Addrs,
@@ -28,6 +31,14 @@ func SetEs() {
 		log.Fatalf("Create es connect failed:%n", err)
 	}
 	EsDB = es
+
+}
+func SetUpMeiliSearch() {
+	MeiliClient = meilisearch.NewClient(meilisearch.ClientConfig{
+		Host:   setting.MeiliSetting.Url,
+		APIKey: setting.MeiliSetting.MasterKey,
+	})
+	//meiliClient = client
 
 }
 func SetupMongo() {
