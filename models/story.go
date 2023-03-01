@@ -545,7 +545,6 @@ func SearchMeili(key string, page int, size int) ([]BookSearch, error) {
 	if err1 != nil {
 		fmt.Println(err.Error())
 	}
-	fmt.Println(hits)
 
 	return bks, nil
 }
